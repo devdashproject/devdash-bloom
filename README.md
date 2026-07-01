@@ -18,9 +18,10 @@ Every task is a **plant**, and its growth stage is its status:
 | 🥀 **Wilted** | `blocked` | drooping, stuck |
 | 🍂 **Ash** | `failed` | a broken stem |
 
-**Fireflies mark work in progress.** Every `in_progress` task gets a firefly that drifts over and tends
-its glowing plant — they appear when work is underway and drift away when it isn't. When a task actually
-transitions to **completed** between refreshes, its
+**Fireflies mark work in progress.** Every `in_progress` task gets a **bright** firefly that drifts over
+and tends its glowing plant — they appear when work is underway and drift away when it isn't. (A few
+**dim** fireflies also wander freely for ambiance, attached to nothing — the bright ones are the ones
+doing work.) When a task actually transitions to **completed** between refreshes, its
 plant **bursts into petals** with a little "✦ bloom" — your real wins, celebrated as they happen
 (turn on the chime in the top bar for a soft note too).
 

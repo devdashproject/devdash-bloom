@@ -57,6 +57,7 @@ export class GardenEngine {
   private phase: SkyPhase = 'night';
   private initialized = false;
   private bloomCount = 0;
+  private readonly ambientCount = 3; // dim free-roaming wanderers, always present for ambiance
 
   constructor(private canvas: HTMLCanvasElement, private opts: Opts) {
     this.ctx = canvas.getContext('2d')!;
@@ -201,16 +202,18 @@ export class GardenEngine {
   }
 
   private syncFireflies() {
-    // One firefly per in-progress task — they appear when work is underway and
-    // leave when it isn't. (No ambient wanderers: a firefly always *means* something.)
-    const want = Math.min(60, this.growingPlants().length);
+    // A few dim wanderers always drift for ambiance; beyond those, one BRIGHT firefly
+    // per in-progress task — so it's clear at a glance which fireflies mark active work.
+    const want = Math.min(60, this.ambientCount + this.growingPlants().length);
     while (this.fireflies.length < want) {
       this.fireflies.push({
         x: Math.random() * this.w, y: (BAND_TOP + Math.random() * 0.4) * this.h,
-        vx: 0, vy: 0, bright: true, phase: Math.random() * 6,
+        vx: 0, vy: 0, bright: false, phase: Math.random() * 6,
       });
     }
     while (this.fireflies.length > want) this.fireflies.pop();
+    // first `ambientCount` stay dim wanderers; the rest are bright tenders
+    this.fireflies.forEach((f, i) => { f.bright = i >= this.ambientCount; });
   }
 
   private growingPlants(): Plant[] {
@@ -221,11 +224,13 @@ export class GardenEngine {
 
   private updateFireflies(dt: number) {
     const targets = this.growingPlants();
-    // firefly count == in-progress count, so index maps each firefly to its own plant
     for (let i = 0; i < this.fireflies.length; i++) {
       const f = this.fireflies[i];
       f.phase += dt;
-      const tp = targets.length ? targets[i % targets.length] : null;
+      // bright tenders (index >= ambientCount) each hover their own in-progress plant;
+      // dim wanderers (the first `ambientCount`) roam freely, attached to nothing.
+      const bi = i - this.ambientCount;
+      const tp = bi >= 0 && targets.length ? targets[bi % targets.length] : null;
       if (tp) {
         f.target = tp.bead.id;
         const top = this.plantTop(tp);
@@ -233,6 +238,7 @@ export class GardenEngine {
         const dy = top.y - f.y + Math.cos(f.phase * 1.3) * 16;
         f.vx += dx * dt * 1.6; f.vy += dy * dt * 1.6;
       } else {
+        f.target = undefined;
         f.vx += (Math.sin(f.phase * 0.9) * 14) * dt;
         f.vy += (Math.cos(f.phase * 0.7) * 14) * dt;
       }
@@ -389,10 +395,11 @@ export class GardenEngine {
     const ctx = this.ctx;
     for (const f of this.fireflies) {
       const fl = 0.5 + 0.5 * Math.sin(f.phase * 4);
-      const r = f.bright ? 2.6 : 1.8;
-      const alpha = (f.bright ? 0.9 : 0.5) * (0.5 + fl * 0.5);
-      ctx.globalAlpha = alpha * 0.4; ctx.fillStyle = '#ffe9a8';
-      ctx.beginPath(); ctx.arc(f.x, f.y, r * 4, 0, 7); ctx.fill();
+      // bright tenders: bigger, fuller glow. dim wanderers: small and faint.
+      const r = f.bright ? 2.9 : 1.3;
+      const alpha = (f.bright ? 1 : 0.28) * (0.5 + fl * 0.5);
+      ctx.globalAlpha = alpha * (f.bright ? 0.5 : 0.22); ctx.fillStyle = '#ffe9a8';
+      ctx.beginPath(); ctx.arc(f.x, f.y, r * (f.bright ? 4.6 : 2.8), 0, 7); ctx.fill();
       ctx.globalAlpha = alpha; ctx.fillStyle = '#fff6d6';
       ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, 7); ctx.fill();
     }

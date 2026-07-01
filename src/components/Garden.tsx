@@ -159,7 +159,7 @@ export default function Garden() {
         <Leg c="#9be88a" t="growing = in progress" />
         <Leg c="#ff7eb6" t="bloom = completed" />
         <Leg c="#7e9b6e" t="wilted = blocked" />
-        <Leg c="#ffe9a8" t="firefly = in progress" />
+        <Leg c="#ffe9a8" t="bright firefly = in progress" />
       </div>
 
       {/* Hover tooltip */}
