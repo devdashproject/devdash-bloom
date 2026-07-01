@@ -18,8 +18,9 @@ Every task is a **plant**, and its growth stage is its status:
 | 🥀 **Wilted** | `blocked` | drooping, stuck |
 | 🍂 **Ash** | `failed` | a broken stem |
 
-**Fireflies are your agents.** Each running job becomes a bright firefly that drifts over and tends the
-glowing in-progress plants. When a task actually transitions to **completed** between refreshes, its
+**Fireflies mark work in progress.** Every `in_progress` task gets a firefly that drifts over and tends
+its glowing plant — they appear when work is underway and drift away when it isn't. When a task actually
+transitions to **completed** between refreshes, its
 plant **bursts into petals** with a little "✦ bloom" — your real wins, celebrated as they happen
 (turn on the chime in the top bar for a soft note too).
 
@@ -37,7 +38,7 @@ during your visit.
 | 🌬️ **Breeze** | Send a gust through the whole garden. |
 | 🔔 **Chime** | Toggle a soft note on each real bloom (off by default). |
 
-The garden auto-refreshes (beads every 15s, agent fireflies every 10s). To keep it lush but legible it
+The garden auto-refreshes every 15s. To keep it lush but legible it
 plants up to ~140 at once, always reserving room for your most recent blooms.
 
 ## Quick start
@@ -53,16 +54,17 @@ Log in with a DevDash API token:
 devdash token create bloom   # paste the dd_… value into the login screen
 ```
 
-> Best first impression: open it in the evening and start an agent job — a firefly tending a glowing bud
-> under a starry sky, then a petal-burst when it finishes, is the whole point.
+> Best first impression: open it in the evening and move a task to in progress — a firefly tending a
+> glowing bud under a starry sky, then a petal-burst when it finishes, is the whole point.
 
 ## How it connects to DevDash
 
 - `vite.config.ts` proxies `/api/*` to the hosted backend in dev. **For your own server**, set
   `VITE_API_URL=https://your-host` (calls `<that>/api`; enable CORS) or edit the proxy `target`.
 - **Auth:** Bearer token in `sessionStorage` (`dd_bloom_token`).
-- **Data:** `GET /beads?projectId=…` per selected project for the plants, and `GET /jobs` for the
-  firefly count. Bloom celebrations come from diffing successive polls — no special endpoint needed.
+- **Data:** `GET /beads?projectId=…` per selected project — that single stream drives everything
+  (plants *and* fireflies, since fireflies track `in_progress` tasks). Bloom celebrations come from
+  diffing successive polls — no special endpoint needed.
 
 ## Built with
 

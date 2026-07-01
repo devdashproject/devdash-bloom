@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, Flower2, Layers, LogOut, Volume2, VolumeX, Wind, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useFireflies, useGarden, useMe, useProjects } from '../hooks';
+import { useGarden, useMe, useProjects } from '../hooks';
 import { skyPhase, timeAgo } from '../lib/helpers';
 import type { GardenBead } from '../types';
 import { GardenEngine, stageOf } from '../garden/engine';
@@ -55,7 +55,6 @@ export default function Garden() {
   }, [projects]);
 
   const { data: beads = [] } = useGarden(projects, selected);
-  const { data: fire } = useFireflies(selected);
 
   function chime() {
     if (!soundRef.current) return;
@@ -115,7 +114,6 @@ export default function Garden() {
   // push data into the engine
   const planted = useMemo(() => selectPlants(beads), [beads]);
   useEffect(() => { engineRef.current?.setBeads(planted); }, [planted]);
-  useEffect(() => { engineRef.current?.setFireflyTargets(fire?.running ?? 0, fire?.queued ?? 0); }, [fire]);
 
   return (
     <div className="relative w-screen h-screen overflow-hidden">
@@ -152,7 +150,6 @@ export default function Garden() {
         <Stat color="#9be88a" label="growing" v={census.growing} pulse />
         <Stat color="#ff7eb6" label="bloomed" v={census.bloom} />
         <Stat color="#7e9b6e" label="wilted" v={census.wilted} />
-        {(fire?.running ?? 0) > 0 && <Stat color="#ffe9a8" label="agents" v={fire!.running} />}
         {blooms > 0 && <div className="pl-3 border-l border-white/10 text-petal-gold text-xs font-semibold">✦ {blooms} bloomed this visit</div>}
       </div>
 
@@ -162,7 +159,7 @@ export default function Garden() {
         <Leg c="#9be88a" t="growing = in progress" />
         <Leg c="#ff7eb6" t="bloom = completed" />
         <Leg c="#7e9b6e" t="wilted = blocked" />
-        <Leg c="#ffe9a8" t="firefly = working agent" />
+        <Leg c="#ffe9a8" t="firefly = in progress" />
       </div>
 
       {/* Hover tooltip */}

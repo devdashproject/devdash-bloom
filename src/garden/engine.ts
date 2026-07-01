@@ -55,7 +55,6 @@ export class GardenEngine {
   private hovered: string | null = null;
   private sky: [string, string, string] = SKY.night;
   private phase: SkyPhase = 'night';
-  private targetFire = { running: 0, queued: 0 };
   private initialized = false;
   private bloomCount = 0;
 
@@ -80,8 +79,6 @@ export class GardenEngine {
   setPointer(x: number, y: number) { this.pointer.x = x; this.pointer.y = y; }
 
   gust() { this.gustAmt = 1; }
-
-  setFireflyTargets(running: number, queued: number) { this.targetFire = { running, queued }; }
 
   // Reconcile the plant set; detect new completions -> celebrate.
   setBeads(beads: GardenBead[]) {
@@ -204,17 +201,16 @@ export class GardenEngine {
   }
 
   private syncFireflies() {
-    const ambient = 4;
-    const want = Math.min(50, ambient + this.targetFire.running + Math.ceil(this.targetFire.queued / 2));
+    // One firefly per in-progress task — they appear when work is underway and
+    // leave when it isn't. (No ambient wanderers: a firefly always *means* something.)
+    const want = Math.min(60, this.growingPlants().length);
     while (this.fireflies.length < want) {
       this.fireflies.push({
         x: Math.random() * this.w, y: (BAND_TOP + Math.random() * 0.4) * this.h,
-        vx: 0, vy: 0, bright: this.fireflies.length >= ambient, phase: Math.random() * 6,
+        vx: 0, vy: 0, bright: true, phase: Math.random() * 6,
       });
     }
     while (this.fireflies.length > want) this.fireflies.pop();
-    // bright count = running jobs
-    this.fireflies.forEach((f, i) => { f.bright = i >= ambient; });
   }
 
   private growingPlants(): Plant[] {
@@ -225,17 +221,17 @@ export class GardenEngine {
 
   private updateFireflies(dt: number) {
     const targets = this.growingPlants();
-    for (const f of this.fireflies) {
+    // firefly count == in-progress count, so index maps each firefly to its own plant
+    for (let i = 0; i < this.fireflies.length; i++) {
+      const f = this.fireflies[i];
       f.phase += dt;
-      if (f.bright && targets.length) {
-        if (!f.target || !this.plants.has(f.target) || this.plants.get(f.target)!.stage !== 'growing') {
-          f.target = targets[Math.floor(Math.random() * targets.length)].bead.id;
-        }
-        const tp = this.plants.get(f.target)!;
+      const tp = targets.length ? targets[i % targets.length] : null;
+      if (tp) {
+        f.target = tp.bead.id;
         const top = this.plantTop(tp);
-        const dx = top.x - f.x + Math.sin(f.phase * 1.7) * 18;
-        const dy = top.y - f.y + Math.cos(f.phase * 1.3) * 18;
-        f.vx += dx * dt * 1.4; f.vy += dy * dt * 1.4;
+        const dx = top.x - f.x + Math.sin(f.phase * 1.7) * 16;
+        const dy = top.y - f.y + Math.cos(f.phase * 1.3) * 16;
+        f.vx += dx * dt * 1.6; f.vy += dy * dt * 1.6;
       } else {
         f.vx += (Math.sin(f.phase * 0.9) * 14) * dt;
         f.vy += (Math.cos(f.phase * 0.7) * 14) * dt;

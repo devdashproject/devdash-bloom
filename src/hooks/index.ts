@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
-import type { Bead, GardenBead, Job, PaginatedResponse, Project, User } from '../types';
+import type { Bead, GardenBead, PaginatedResponse, Project, User } from '../types';
 
 export function useMe() {
   return useQuery({
@@ -58,25 +58,6 @@ export function useGarden(projects: Project[], selectedIds: string[]) {
         })
       );
       return results.flat();
-    },
-  });
-}
-
-/** Running/queued agent jobs in the chosen scope — these become tending fireflies. */
-export function useFireflies(selectedIds: string[]) {
-  return useQuery({
-    queryKey: ['fireflies'],
-    refetchInterval: 10_000,
-    staleTime: 5_000,
-    queryFn: async () => {
-      const r = await api.get<PaginatedResponse<Job>>('/jobs?limit=200');
-      if (!r.success) return { running: 0, queued: 0 };
-      const jobs = r.data!.data ?? [];
-      const inScope = jobs.filter((j) => selectedIds.length === 0 || selectedIds.includes(j.project_id));
-      return {
-        running: inScope.filter((j) => j.status === 'running').length,
-        queued: inScope.filter((j) => j.status === 'queued').length,
-      };
     },
   });
 }
