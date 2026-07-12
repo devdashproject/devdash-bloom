@@ -229,23 +229,38 @@ export class GardenEngine {
       f.phase += dt;
       // bright tenders (index >= ambientCount) each hover their own in-progress plant;
       // dim wanderers (the first `ambientCount`) roam freely, attached to nothing.
+      const topB = this.h * 0.3, botB = this.h * 0.92;
       const bi = i - this.ambientCount;
       const tp = bi >= 0 && targets.length ? targets[bi % targets.length] : null;
       if (tp) {
+        // bright tender: hover its in-progress plant
         f.target = tp.bead.id;
         const top = this.plantTop(tp);
         const dx = top.x - f.x + Math.sin(f.phase * 1.7) * 16;
         const dy = top.y - f.y + Math.cos(f.phase * 1.3) * 16;
         f.vx += dx * dt * 1.6; f.vy += dy * dt * 1.6;
+        f.vx *= 0.92; f.vy *= 0.92;
       } else {
+        // dim wanderer: gentle meander that softly turns back from the edges — never
+        // teleport-wraps (which used to let it build speed and streak across the screen).
         f.target = undefined;
-        f.vx += (Math.sin(f.phase * 0.9) * 14) * dt;
-        f.vy += (Math.cos(f.phase * 0.7) * 14) * dt;
+        f.vx += Math.sin(f.phase * 0.7) * 5 * dt;
+        f.vy += Math.cos(f.phase * 0.5) * 5 * dt;
+        const m = 90;
+        if (f.x < m) f.vx += (m - f.x) * 0.004;
+        else if (f.x > this.w - m) f.vx -= (f.x - (this.w - m)) * 0.004;
+        if (f.y < topB + 20) f.vy += (topB + 20 - f.y) * 0.004;
+        else if (f.y > botB - 20) f.vy -= (f.y - (botB - 20)) * 0.004;
+        f.vx *= 0.94; f.vy *= 0.94;
+        // hard speed cap so a wanderer can never streak
+        const maxV = 0.9;
+        const sp = Math.hypot(f.vx, f.vy);
+        if (sp > maxV) { f.vx = (f.vx / sp) * maxV; f.vy = (f.vy / sp) * maxV; }
       }
-      f.vx *= 0.92; f.vy *= 0.92;
       f.x += f.vx; f.y += f.vy;
-      if (f.x < 0) f.x = this.w; if (f.x > this.w) f.x = 0;
-      if (f.y < this.h * 0.3) f.y = this.h * 0.3; if (f.y > this.h * 0.92) f.y = this.h * 0.92;
+      // clamp inside the field (no edge teleporting for anyone)
+      f.x = Math.max(0, Math.min(this.w, f.x));
+      f.y = Math.max(topB, Math.min(botB, f.y));
     }
   }
 
