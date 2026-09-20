@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5184,
     proxy: {
       '/api': {
-        target: 'https://dev-dash-server-production.up.railway.app',
+        target: 'https://devdash-prime.up.railway.app',
         changeOrigin: true,
         secure: true,
       },

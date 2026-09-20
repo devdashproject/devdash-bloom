@@ -219,7 +219,7 @@ function DetailCard({ bead, onClose }: { bead: GardenBead; onClose: () => void }
       <div className="flex items-center justify-between text-[11px] text-white/45">
         <span>updated {timeAgo(bead.updatedAt)} · planted {timeAgo(bead.createdAt)}</span>
         <a
-          href={`https://dev-dash-server-production.up.railway.app/projects/${bead.projectId}`}
+          href={`https://devdash-prime.up.railway.app/projects/${bead.projectId}`}
           target="_blank" rel="noreferrer"
           className="text-petal-pink hover:text-petal-gold transition-colors font-semibold"
         >Open in DevDash ↗</a>
